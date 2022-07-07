@@ -20,7 +20,7 @@ warrior_t row_a_dice(struct warrior_t first, struct warrior_t second){
 }
 
 //implementation of the fight
-void fight(warrior_t first, warrior_t second){
+int fight(warrior_t first, warrior_t second){
     if(strcmp(first.name, row_a_dice(first, second).name)){
         while(first.health > 0 && second.health > 0){
             printf("%s %.1fhp : %s %.1fhp\n", first.name, first.health, second.name, second.health);
@@ -40,8 +40,10 @@ void fight(warrior_t first, warrior_t second){
         }
         if(first.health <= 0){
             printf("%s wins", second.name);
+            return 1;
         }else{
             printf("%s wins", first.name);
+            return 0;
         }
     }
 }
