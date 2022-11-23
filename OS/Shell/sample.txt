@@ -1,0 +1,14 @@
+When reviewing the specs for 3D printers, 
+you might encounter the term “CoreXY”. 
+What is a “CoreXY” system?
+
+The term refers to a particular design for the X and Y motion systems
+on not only 3D printers but also other types of CNC machines. 
+
+The motion system is a critical component of 3D printers, 
+particularly filament-based cartesian designs where the hot end must be moved rapidly in three dimensions. 
+While the Z-axis is a separate matter, 
+the X and Y axis motion systems can be more complex and there are multiple methods of doing so. 
+
+Here is a design used by Ultimaker on their machines. 
+Other manufacturers use a variety of other schemes. 
