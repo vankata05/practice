@@ -1,0 +1,9 @@
+#include<stdio.h>
+#include<stdint.h>
+
+int main(){
+	uint32_t arr1[5] = {0xBA84, 0x03CF, 0x2642, 0x83A6, 0x53AB}
+	uint32_t arr2[5] = {0x0867, 0xCAB3, 0xD8AF, 0xE964, 0x8134}
+	
+	int fd = open("f1", 
+}

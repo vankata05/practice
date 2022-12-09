@@ -38,13 +38,15 @@ char* tail(int fd, unsigned int n){
         check = read(fd, temp, 1);
         if(check == -1)
             exit(2);
-        if(check == 0)
+        if(check != 1)
             return reverse(out);
         
         out[i] = temp[0];
 
-        if(lseek(fd, -2, SEEK_CUR) == -1)
+        if(lseek(fd, -2, SEEK_CUR) == -1){
+            printf("lseek failed!");
             exit(3);
+        }
 
         if(out[i] == '\n')
             lines++;
@@ -70,6 +72,7 @@ int main(int argc, char **argv){
     for (int i = 2; i < argc; ++i){
         if(!strcmp(argv[i] , "-n")){
             printf("%s\n", tail(fd, atoi(argv[i+1])));
+            printf("Hello");
         }
     }
 
