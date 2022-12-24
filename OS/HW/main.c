@@ -6,6 +6,21 @@
 #include<string.h>
 #include<stdlib.h>
 
+//cuz the one that came with stdlib wasn't working for some reason ('_')
+char* itoa(uint8_t val, uint8_t base){
+	
+	static char buf[32] = {0};
+	
+	uint8_t i = 30;
+	
+	for(; val && i ; --i, val /= base)
+	
+		buf[i] = "0123456789abcdef"[val % base];
+	
+	return &buf[i+1];
+	
+}
+
 char* getAns(char* filename){
     int fd = open(filename, O_RDONLY);
     if(fd == -1)
@@ -33,6 +48,7 @@ uint8_t compFiles(char* filename1, char* filename2){
     char* file1 = getAns(filename1);
     char* file2 = getAns(filename2);
     uint8_t right = 0;
+
     for(uint8_t i = 0; i < 25; i++){
         if(file1[i] == file2[i]){
             right++;
@@ -58,29 +74,26 @@ uint8_t grade(int points){
     }
 }
 
-//cuz the one that came with stdlib wasntworking ('_')
-char* itoa(int val, int base){
-	
-	static char buf[32] = {0};
-	
-	int i = 30;
-	
-	for(; val && i ; --i, val /= base)
-	
-		buf[i] = "0123456789abcdef"[val % base];
-	
-	return &buf[i+1];
-	
+void writeGrade(char* filename, uint8_t grade){
+    char grade_ = grade + 48;
+    int fd = open(filename, O_WRONLY);
+    if(fd == -1)
+        exit(3);
+
+    if(write(fd, &grade_, 1) == -1)
+        exit(4);
 }
 
-void writeGrades(char*filename, uint8_t* grades){
-    char* temp = malloc(sizeof(uint8_t)*50);
-    printf("Hewwo");
-    for(int i = 0; i < 50; i+=2){
-        temp[i] = grades[i/2] + 48;
-        temp[i+1] = '\n';
+void writeGrades(char* dirname, uint8_t* grades){
+    char* temp;
+
+    for(uint8_t i; i < 25; i++){
+        temp = strdup(dirname);
+        strcat(temp, itoa(i+1, 10));
+        writeGrade(temp, grades[i]);
     }
-    printf("%s", temp);
+
+    free(temp);
 }
 
 void autoGrade(char* dirname1, char* ansheet, char* dirname2){
@@ -94,12 +107,21 @@ void autoGrade(char* dirname1, char* ansheet, char* dirname2){
         grades[i] = grade(compFiles(ansheet, temp));
     }
 
+    writeGrades(dirname2, grades);
+
+    free(grades);
     free(temp);
 }
 
 int main(int argc, char* argv[]){
-    //printf("%d\n", compFiles(argv[1], "./answers/1"));
-    autoGrade("./answers/", "./answers_sheet/correct_answers", "./results/");
-    
+    if(argc < 4){
+        printf("Not enought parameters!");
+        exit(4);
+    }else{
+        printf("%s\t%s\t%s\n", argv[1], argv[2], argv[3]);
+        autoGrade(argv[1], argv[2], argv[3]);
+        printf("horray!!!");
+    }
+    // autoGrade("./answers/", "./answers_sheet/correct_answers", "./results/");
     return 0;
 }
