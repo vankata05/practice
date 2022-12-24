@@ -58,7 +58,7 @@ uint8_t compFiles(char* filename1, char* filename2){
             right++;
         }
     }
-
+    printf("%d ", right);
     free(file1);
     free(file2);
     return right;
