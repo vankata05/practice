@@ -23,12 +23,16 @@ char* itoa(uint8_t val, uint8_t base){
 
 char* getAns(char* filename){
     int fd = open(filename, O_RDONLY);
-    if(fd == -1)
+    if(fd == -1){
+        printf("Cannot open file %s\n", filename);
         exit(1);
+    }
     
     char* temp = malloc(sizeof(char)*50);
-    if(read(fd, temp, 50) == -1)
+    if(read(fd, temp, 50) == -1){
+        printf("Error writing to file %s\n", filename);
         exit(2);
+    }
     
     char* Ans = malloc(sizeof(char)*25);
     uint8_t next = 0;
@@ -77,11 +81,14 @@ uint8_t grade(int points){
 void writeGrade(char* filename, uint8_t grade){
     char grade_ = grade + 48;
     int fd = open(filename, O_WRONLY);
-    if(fd == -1)
+    if(fd == -1){
+        printf("Cannot open file %s\n", filename);
         exit(3);
-
-    if(write(fd, &grade_, 1) == -1)
+    }
+    if(write(fd, &grade_, 1) == -1){
+        printf("Error writing to file %s\n", filename);
         exit(4);
+    }
 }
 
 void writeGrades(char* dirname, uint8_t* grades){
@@ -114,14 +121,12 @@ void autoGrade(char* dirname1, char* ansheet, char* dirname2){
 }
 
 int main(int argc, char* argv[]){
+    // autoGrade("./answers/", "./answers_sheet/correct_answers", "./results/");
     if(argc < 4){
-        printf("Not enought parameters!");
+        printf("Not enought parameters!\n");
         exit(4);
     }else{
-        printf("%s\t%s\t%s\n", argv[1], argv[2], argv[3]);
         autoGrade(argv[1], argv[2], argv[3]);
-        printf("horray!!!");
     }
-    // autoGrade("./answers/", "./answers_sheet/correct_answers", "./results/");
     return 0;
 }
