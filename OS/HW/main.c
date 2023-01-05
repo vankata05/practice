@@ -106,7 +106,6 @@ void writeGrades(char* dirname, uint8_t* grades){
 void autoGrade(char* dirname1, char* ansheet, char* dirname2){
     uint8_t* grades = malloc(sizeof(uint8_t)*25);
     char* temp;
-    char integer[2];
 
     for(uint8_t i; i < 25; i++){
         temp = strdup(dirname1);
