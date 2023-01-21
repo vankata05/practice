@@ -1,0 +1,4 @@
+false
+true
+df -i -h
+ls -t -r -i -a -l
