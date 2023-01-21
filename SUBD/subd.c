@@ -46,7 +46,7 @@ int createDB(){
 
 int insertTodo(){
     sqlite3* db;
-    char* err_msg = 0;
+    
     int rc = sqlite3_open("Biznis.db", &db);
 
     if (rc != SQLITE_OK) {
@@ -78,7 +78,7 @@ int insertTodo(){
 
 int insertOrder(char* name, int quantity, char* type, float price, char *date){
     sqlite3* db;
-    char* err_msg = 0;
+    
     int rc = sqlite3_open("Biznis.db", &db);
 
     if (rc != SQLITE_OK) {
@@ -126,7 +126,7 @@ int insertOrder(char* name, int quantity, char* type, float price, char *date){
 
 int completeOrder(int id){
     sqlite3* db;
-    char* err_msg = 0;
+    
     int rc = sqlite3_open("Biznis.db", &db);
 
     if (rc != SQLITE_OK) {
@@ -160,7 +160,7 @@ int completeOrder(int id){
 
 int deleteOrder(int id){
     sqlite3* db;
-    char* err_msg = 0;
+    
     int rc = sqlite3_open("Biznis.db", &db);
 
     if (rc != SQLITE_OK) {
@@ -194,7 +194,7 @@ int deleteOrder(int id){
 
 int alterOrder(int id){
     sqlite3* db;
-    char* err_msg = 0;
+    
     int rc = sqlite3_open("Biznis.db", &db);
 
     if (rc != SQLITE_OK) {
@@ -337,7 +337,7 @@ int alterOrder(int id){
 
 int printBalance(){
     sqlite3* db;
-    char* err_msg = 0;
+    
     int rc = sqlite3_open("Biznis.db", &db);
 
     if (rc != SQLITE_OK) {
@@ -371,7 +371,7 @@ int printBalance(){
 
 int printTodo(){
     sqlite3* db;
-    char* err_msg = 0;
+    
     int rc = sqlite3_open("Biznis.db", &db);
 
     if (rc != SQLITE_OK) {
@@ -409,7 +409,7 @@ int printTodo(){
 
 int printIncome(){
     sqlite3* db;
-    char* err_msg = 0;
+    
     int rc = sqlite3_open("Biznis.db", &db);
 
     if (rc != SQLITE_OK) {
@@ -447,7 +447,7 @@ int printIncome(){
 
 int printExpenses(){
     sqlite3* db;
-    char* err_msg = 0;
+    
     int rc = sqlite3_open("Biznis.db", &db);
 
     if (rc != SQLITE_OK) {
@@ -485,7 +485,7 @@ int printExpenses(){
 
 int printCashFlow(){
     sqlite3* db;
-    char* err_msg = 0;
+    
     int rc = sqlite3_open("Biznis.db", &db);
 
     if (rc != SQLITE_OK) {
@@ -494,7 +494,7 @@ int printCashFlow(){
         return 1;
     }
 
-    char* sql = "SELECT * FROM Orders;";
+    char* sql = "SELECT * FROM Orders GROUP BY Price ORDER BY Price DESC;";
 
     sqlite3_stmt *stmt;
     rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
@@ -523,7 +523,7 @@ int printCashFlow(){
 
 int printOrder(int id){
     sqlite3* db;
-    char* err_msg = 0;
+    
     int rc = sqlite3_open("Biznis.db", &db);
 
     if (rc != SQLITE_OK) {
@@ -591,8 +591,9 @@ int main(){
             case 2:
                 system("clear");
                 int id;
-                printf("Enter id of order to complete: ");
                 printTodo();
+                printf("\n");
+                printf("Enter id of order to complete: ");
                 printf("\n");
                 scanf("%d", &id);
                 completeOrder(id);
@@ -654,4 +655,3 @@ int main(){
     }while(choice != 9);
     return 0;
 }
-
