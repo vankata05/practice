@@ -59,6 +59,8 @@ int main(int argc, char *argv[]) {
                 command = strtok(NULL, " ");
             }
 
+            options[option_count] = NULL;
+
             int pid = fork();
 
             if (pid == 0) {

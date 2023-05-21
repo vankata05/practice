@@ -119,13 +119,7 @@ void writeGrade(char* filename, uint8_t grade){
 }
 
 void writeGrades(char* dirname, uint8_t* grades){
-    char* temp = malloc((strlen(dirname) + 2) * sizeof(char));;
-
-    if(temp == NULL){
-        printf("Error allocating memory!\n");
-        free(temp);
-        exit(5);
-    }
+    char* temp;
 
     for(uint8_t i = 0; i < 25; i++){
         temp = strdup(dirname);
@@ -141,12 +135,11 @@ void writeGrades(char* dirname, uint8_t* grades){
 void autoGrade(char* dirname1, char* ansheet, char* dirname2){
 // REMARK: missing error handling
     uint8_t* grades = malloc(sizeof(uint8_t)*25);
-    char* temp = malloc((strlen(dirname1) + 2) * sizeof(char));
+    char* temp;
 
-    if(grades == NULL || temp == NULL){
+    if(grades == NULL){
         printf("Error allocating memory!\n");
         free(grades);
-        free(temp);
         exit(5);
     }
 
