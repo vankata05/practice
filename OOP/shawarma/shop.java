@@ -32,13 +32,12 @@ public class shop {
     }
 
     public String getVegetableThatNeedsLoading() {
-        Map <String, Integer> vegetablesThatNeedsLoading = currentVegetables;
-        vegetablesThatNeedsLoading.entrySet().removeIf(entry -> entry.getValue() > maxVegetables.get(entry.getKey()) * 0.1);
-        if (vegetablesThatNeedsLoading.size() > 0) {
-            return vegetablesThatNeedsLoading.keySet().toArray(new String[0])[0];
-        } else {
-            return null;
+        for (Map.Entry<String, Integer> entry : currentVegetables.entrySet()) {
+            if (entry.getValue() < maxVegetables.get(entry.getKey())) {
+                return entry.getKey();
+            }
         }
+        return null;
     }
 
     public boolean useMeal(int amount) {

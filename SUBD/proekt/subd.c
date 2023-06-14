@@ -7,6 +7,9 @@
 #include <fcntl.h>
 #include <stdint.h>
 
+void insertHistory(int id);
+int getCustomerIdFromOrderId(int id);
+
 int createDB(){
     sqlite3* db;
     char* err_msg = 0;
@@ -18,14 +21,31 @@ int createDB(){
         return 1;
     }
 
-char* sql = "CREATE TABLE IF NOT EXISTS Orders("
-    "Id INTEGER PRIMARY KEY, Name VARCHAR(255), Quantity INT, Type VARCHAR(1), Price FLOAT, Date TIMESTAMP, CustomerId INTEGER"
+char* sql = 
+    "CREATE TABLE IF NOT EXISTS Orders ("
+    "    Id INTEGER PRIMARY KEY, "
+    "    Name VARCHAR(255), "
+    "    Quantity INT, "
+    "    Type VARCHAR(1), "
+    "    Price FLOAT, "
+    "    Date TIMESTAMP, "
+    "    CustomerId INTEGER"
     ");"
-    "CREATE TABLE IF NOT EXISTS Customers("
-    "Id INTEGER PRIMARY KEY, Name VARCHAR(255), Email VARCHAR(255), Phone VARCHAR(20)"
+    "CREATE TABLE IF NOT EXISTS Customers ("
+    "    Id INTEGER PRIMARY KEY, "
+    "    Name VARCHAR(255), "
+    "    Email VARCHAR(255), "
+    "    Phone VARCHAR(20), "
+    "    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
     ");"
-    "CREATE TABLE IF NOT EXISTS Todo("
-    "Id INTEGER REFERENCES Orders(Id)"
+    "CREATE TABLE IF NOT EXISTS Todo ("
+    "    Id INTEGER REFERENCES Orders(Id)"
+    ");"
+    "CREATE TABLE IF NOT EXISTS customer_history ("
+    "    Id INTEGER PRIMARY KEY AUTOINCREMENT, "
+    "    CustomerId INTEGER, "
+    "    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+    "    FOREIGN KEY (CustomerId) REFERENCES Customers(Id)"
     ");";
 
     // printf("\n%s\n", sql);
@@ -128,6 +148,9 @@ int insertOrder(char* name, int quantity, char* type, float price, char* date, i
         insertTodo();
     }
 
+    insertHistory(customerId);
+    insertTodo();
+
     return 0;
 }
 
@@ -158,6 +181,8 @@ int completeOrder(int id){
         fprintf(stderr, "Failed to insert data: %s", sqlite3_errmsg(db));
         return 1;
     }
+
+    insertHistory(getCustomerIdFromOrderId(id));
 
     sqlite3_finalize(stmt);
     sqlite3_close(db);
@@ -196,11 +221,15 @@ int deleteOrder(int id){
     sqlite3_finalize(stmt);
     sqlite3_close(db);
 
+    insertHistory(getCustomerIdFromOrderId(id));
+
     return 0;
 }
 
 int alterOrder(int id){
     sqlite3* db;
+
+    insertHistory(getCustomerIdFromOrderId(id));
     
     int rc = sqlite3_open("Biznis.db", &db);
 
@@ -787,13 +816,233 @@ int getCustomerOrdersByType(int customerId, char* type) {
     return 0;
 }
 
+void printCustomers() {
+    sqlite3* db;
+    
+    int rc = sqlite3_open("Biznis.db", &db);
+    
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Cannot open database: %s", sqlite3_errmsg(db));
+        sqlite3_close(db);
+
+        return;
+    }
+
+    char* sql = "SELECT * FROM Customers;";
+
+    sqlite3_stmt *stmt;
+    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s", sqlite3_errmsg(db));
+
+        return;
+    }
+
+    rc = sqlite3_step(stmt);
+    
+    if (rc != SQLITE_ROW) {
+        fprintf(stderr, "Failed to insert data: %s", sqlite3_errmsg(db));
+
+        return;
+    }
+
+    printf("| Id\t|Name\t|Email\t|Phone\t|\n|---------------------------------------|\n");
+    while (rc == SQLITE_ROW) {
+        printf("| %d\t|%s\t|%s\t|%s\t|\n", sqlite3_column_int(stmt, 0),
+               sqlite3_column_text(stmt, 1), sqlite3_column_text(stmt, 2),
+               sqlite3_column_text(stmt, 3));
+
+        rc = sqlite3_step(stmt);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return;
+}
+
+void printCustomerIdandName(){
+    sqlite3* db;
+    
+    int rc = sqlite3_open("Biznis.db", &db);
+    
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Cannot open database: %s", sqlite3_errmsg(db));
+        sqlite3_close(db);
+
+        return;
+    }
+
+    char* sql = "SELECT Id, Name FROM Customers;";
+
+    sqlite3_stmt *stmt;
+    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s", sqlite3_errmsg(db));
+
+        return;
+    }
+
+    rc = sqlite3_step(stmt);
+    
+    if (rc != SQLITE_ROW) {
+        fprintf(stderr, "Failed to insert data: %s", sqlite3_errmsg(db));
+
+        return;
+    }
+
+    printf("| Id\t|Name\t|\n|---------------------------------------|\n");
+    while (rc == SQLITE_ROW) {
+        printf("| %d\t|%s\t|\n", sqlite3_column_int(stmt, 0),
+               sqlite3_column_text(stmt, 1));
+
+        rc = sqlite3_step(stmt);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return;
+}
+
+int getCustomerIdFromOrderId(int OrderId){
+    sqlite3* db;
+    
+    int rc = sqlite3_open("Biznis.db", &db);
+    
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Cannot open database: %s", sqlite3_errmsg(db));
+        sqlite3_close(db);
+
+        return 0;
+    }
+
+    char* sql = "SELECT CustomerId FROM Orders WHERE Id = ?;";
+
+    sqlite3_stmt *stmt;
+    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s", sqlite3_errmsg(db));
+
+        return 0;
+    }
+
+    sqlite3_bind_int(stmt, 1, OrderId);
+
+    rc = sqlite3_step(stmt);
+    
+    if (rc != SQLITE_ROW) {
+        fprintf(stderr, "Failed to insert data: %s", sqlite3_errmsg(db));
+
+        return 0;
+    }
+
+    int customerId = sqlite3_column_int(stmt, 0);
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return customerId;
+}
+
+void getCustomerHistory(int id){
+    sqlite3* db;
+    
+    int rc = sqlite3_open("Biznis.db", &db);
+    
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Cannot open database: %s", sqlite3_errmsg(db));
+        sqlite3_close(db);
+
+        return;
+    }
+
+    char* sql = "SELECT * FROM Orders WHERE CustomerId = ?;";
+
+    sqlite3_stmt *stmt;
+    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s", sqlite3_errmsg(db));
+
+        return;
+    }
+
+    sqlite3_bind_int(stmt, 1, id);
+
+    rc = sqlite3_step(stmt);
+    
+    if (rc != SQLITE_ROW) {
+        fprintf(stderr, "Failed to insert data: %s", sqlite3_errmsg(db));
+
+        return;
+    }
+
+    printf("| Id\t|Name\t|Quantity\t|Type\t|Price  |Date\t   |\n|----------------------------------------------------------|\n");
+    while (rc == SQLITE_ROW) {
+        printf("| %d\t|%s\t|%d\t\t|%s\t|%d\t|%s|\n", sqlite3_column_int(stmt, 0),
+               sqlite3_column_text(stmt, 1), sqlite3_column_int(stmt, 2),
+               sqlite3_column_text(stmt, 3), sqlite3_column_int(stmt, 4),
+               sqlite3_column_text(stmt, 5));
+
+        rc = sqlite3_step(stmt);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return;
+}
+
+void insertHistory(int id){
+    sqlite3* db;
+    
+    int rc = sqlite3_open("Biznis.db", &db);
+    
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Cannot open database: %s", sqlite3_errmsg(db));
+        sqlite3_close(db);
+
+        return;
+    }
+
+    char* sql = "INSERT INTO History SELECT * FROM Orders WHERE Id = ?;";
+
+    sqlite3_stmt *stmt;
+    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s", sqlite3_errmsg(db));
+
+        return;
+    }
+
+    sqlite3_bind_int(stmt, 1, id);
+
+    rc = sqlite3_step(stmt);
+    
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Failed to insert data: %s", sqlite3_errmsg(db));
+
+        return;
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return;
+}
+
 int main() {
     int choice;
 
     createDB();
 
     do {
-        printf("1. Add order\n2. Complete order\n3. Alter order\n4. Print balance\n5. Print todo list\n6. Print income\n7. Print expenses\n8. Print cash flow\n9. Get customer orders by date\n10. Get customer orders by type\n11. Add customer\n12. Delete customer\n13. Exit\n");
+        printf("1. Add order\n2. Complete order\n3. Alter order\n4. Print balance\n5. Print todo list\n6. Print income\n7. Print expenses\n8. Print cash flow\n9. Get customer orders by date\n10. Get customer orders by type\n11. Add customer\n12. Delete customer\n13. Print customers\n14. GetCustomerHistory\n15. Exit\n");
         scanf("%d", &choice);
         switch(choice) {
             case 1:
@@ -813,6 +1062,7 @@ int main() {
                 printf("Enter date of order in format dd.mm.yyyy: ");
                 scanf("%ms", &date);
                 int customerId;
+                printCustomerIdandName();
                 printf("Enter customer ID: ");
                 scanf("%d", &customerId);
                 insertOrder(name, quantity, &type, price, date, customerId);
@@ -872,6 +1122,7 @@ int main() {
                 system("clear");
                 int customerIdByDate;
                 char* dateByDate;
+                printCustomerIdandName();
                 printf("Enter customer ID: ");
                 scanf("%d", &customerIdByDate);
                 printf("Enter date in format dd.mm.yyyy: ");
@@ -884,6 +1135,7 @@ int main() {
                 system("clear");
                 int customerIdByType;
                 char typeByType;
+                printCustomerIdandName();
                 printf("Enter customer ID: ");
                 scanf("%d", &customerIdByType);
                 printf("Enter order type (+/-): ");
@@ -894,19 +1146,23 @@ int main() {
                 break;
             case 11:
                 system("clear");
-                int newCustomerId;
-                printf("Enter customer ID: ");
-                scanf("%d", &newCustomerId);
                 char* newCustomerName;
                 printf("Enter customer name: ");
-                scanf("%ms", &newCustomerName);
-                addCustomer(newCustomerId, newCustomerName);
+                scanf("%ms", &newCustomerName); 
+                char* newCustomerEmail;
+                printf("Enter customer email: ");
+                scanf("%ms", &newCustomerEmail);
+                char* newCustomerPhone;
+                printf("Enter customer phone: ");
+                scanf("%ms", &newCustomerPhone);
+                addCustomer(newCustomerName, newCustomerEmail, newCustomerPhone);
                 getchar();
                 getchar();
                 break;
             case 12:
                 system("clear");
                 int deleteCustomerId;
+                printCustomerIdandName();
                 printf("Enter customer ID to delete: ");
                 scanf("%d", &deleteCustomerId);
                 deleteCustomer(deleteCustomerId);
@@ -914,6 +1170,22 @@ int main() {
                 getchar();
                 break;
             case 13:
+                system("clear");
+                printCustomers();
+                getchar();
+                getchar();
+                break;
+            case 14:
+                system("clear");
+                int cId;
+                printCustomerIdandName();
+                printf("Enter customer ID: ");
+                scanf("%d", &cId);
+                getCustomerHistory(cId);
+                getchar();
+                getchar();
+                break;
+            case 15:
                 system("clear");
                 printf("Goodbye!\n");
                 sleep(1);
@@ -924,6 +1196,6 @@ int main() {
                 break;
         }
         system("clear");
-    } while(choice != 13);
+    } while(choice != 15);
     return 0;
 }

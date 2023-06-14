@@ -12,7 +12,7 @@ public class Main {
         cook cook = new cook(diner);
         while (true) {
             try {
-                Thread.sleep((long)(Math.random() * 4000) + 1000); // between 1 and 5 seconds
+                Thread.sleep((long)(Math.random() * 4000) + 1000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
